@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <!-- title -->
+
+
+
+
+<!-- keywords -->
+
+
+
+
+<head><meta name="generator" content="Hexo 3.8.0">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="author" content="Micardi">
+    <meta name="renderer" content="webkit">
+    <meta name="copyright" content="Micardi">
+    
+    <meta name="keywords" content="hexo,hexo-theme,hexo-blog">
+    
+    <meta name="description" content>
+    <meta http-equiv="Cache-control" content="no-cache">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>解决Xor问题的利器——线性基 · Micardi&#39;s Blog</title>
+    <style type="text/css">
+    @font-face {
+        font-family: 'Oswald-Regular';
+        src: url("/font/Oswald-Regular.ttf");
+    }
+
+    body {
+        margin: 0;
+    }
+
+    header,
+    footer,
+    .back-top,
+    .sidebar,
+    .container,
+    .site-intro-meta,
+    .toc-wrapper {
+        display: none;
+    }
+
+    .site-intro {
+        position: relative;
+        z-index: 3;
+        width: 100%;
+        /* height: 50vh; */
+        overflow: hidden;
+    }
+
+    .site-intro-placeholder {
+        position: absolute;
+        z-index: -2;
+        top: 0;
+        left: 0;
+        width: calc(100% + 300px);
+        height: 100%;
+        background: repeating-linear-gradient(-45deg, #444 0, #444 80px, #333 80px, #333 160px);
+        background-position: center center;
+        transform: translate3d(-226px, 0, 0);
+        animation: gradient-move 2.5s ease-out 0s infinite;
+    }
+
+    @keyframes gradient-move {
+        0% {
+            transform: translate3d(-226px, 0, 0);
+        }
+        100% {
+            transform: translate3d(0, 0, 0);
+        }
+    }
+
+</style>
+
+    <link rel="preload" href="/css/style.css?v=20180824" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <link rel="stylesheet" href="/css/mobile.css?v=20180824" media="(max-width: 980px)">
+    
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    
+    <!-- /*! loadCSS. [c]2017 Filament Group, Inc. MIT License */
+/* This file is meant as a standalone workflow for
+- testing support for link[rel=preload]
+- enabling async CSS loading in browsers that do not support rel=preload
+- applying rel preload css once loaded, whether supported or not.
+*/ -->
+<script>
+(function( w ){
+	"use strict";
+	// rel=preload support test
+	if( !w.loadCSS ){
+		w.loadCSS = function(){};
+	}
+	// define on the loadCSS obj
+	var rp = loadCSS.relpreload = {};
+	// rel=preload feature support test
+	// runs once and returns a function for compat purposes
+	rp.support = (function(){
+		var ret;
+		try {
+			ret = w.document.createElement( "link" ).relList.supports( "preload" );
+		} catch (e) {
+			ret = false;
+		}
+		return function(){
+			return ret;
+		};
+	})();
+
+	// if preload isn't supported, get an asynchronous load by using a non-matching media attribute
+	// then change that media back to its intended value on load
+	rp.bindMediaToggle = function( link ){
+		// remember existing media attr for ultimate state, or default to 'all'
+		var finalMedia = link.media || "all";
+
+		function enableStylesheet(){
+			link.media = finalMedia;
+		}
+
+		// bind load handlers to enable media
+		if( link.addEventListener ){
+			link.addEventListener( "load", enableStylesheet );
+		} else if( link.attachEvent ){
+			link.attachEvent( "onload", enableStylesheet );
+		}
+
+		// Set rel and non-applicable media type to start an async request
+		// note: timeout allows this to happen async to let rendering continue in IE
+		setTimeout(function(){
+			link.rel = "stylesheet";
+			link.media = "only x";
+		});
+		// also enable media after 3 seconds,
+		// which will catch very old browsers (android 2.x, old firefox) that don't support onload on link
+		setTimeout( enableStylesheet, 3000 );
+	};
+
+	// loop through link elements in DOM
+	rp.poly = function(){
+		// double check this to prevent external calls from running
+		if( rp.support() ){
+			return;
+		}
+		var links = w.document.getElementsByTagName( "link" );
+		for( var i = 0; i < links.length; i++ ){
+			var link = links[ i ];
+			// qualify links to those with rel=preload and as=style attrs
+			if( link.rel === "preload" && link.getAttribute( "as" ) === "style" && !link.getAttribute( "data-loadcss" ) ){
+				// prevent rerunning on link
+				link.setAttribute( "data-loadcss", true );
+				// bind listeners to toggle media back
+				rp.bindMediaToggle( link );
+			}
+		}
+	};
+
+	// if unsupported, run the polyfill
+	if( !rp.support() ){
+		// run once at least
+		rp.poly();
+
+		// rerun poly on an interval until onload
+		var run = w.setInterval( rp.poly, 500 );
+		if( w.addEventListener ){
+			w.addEventListener( "load", function(){
+				rp.poly();
+				w.clearInterval( run );
+			} );
+		} else if( w.attachEvent ){
+			w.attachEvent( "onload", function(){
+				rp.poly();
+				w.clearInterval( run );
+			} );
+		}
+	}
+
+
+	// commonjs
+	if( typeof exports !== "undefined" ){
+		exports.loadCSS = loadCSS;
+	}
+	else {
+		w.loadCSS = loadCSS;
+	}
+}( typeof global !== "undefined" ? global : this ) );
+</script>
+
+    <link rel="icon" href="/assets/favicon.ico">
+    <link rel="preload" href="https://cdn.jsdelivr.net/npm/webfontloader@1.6.28/webfontloader.min.js" as="script">
+    <link rel="preload" href="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js" as="script">
+    <link rel="preload" href="/scripts/main.js" as="script">
+    <link rel="preload" as="font" href="/font/Oswald-Regular.ttf" crossorigin>
+    <link rel="preload" as="font" href="https://at.alicdn.com/t/font_327081_1dta1rlogw17zaor.woff" crossorigin>
+    
+    <!-- fancybox -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.js" defer></script>
+    <!-- 百度统计  -->
+    
+    <!-- 谷歌统计  -->
+    
+</head>
+
+    
+        <body class="post-body">
+    
+    
+<header class="header">
+
+    <div class="read-progress"></div>
+    <div class="header-sidebar-menu">&#xe775;</div>
+    <!-- post页的toggle banner  -->
+    
+    <div class="banner">
+            <div class="blog-title">
+                <a href="/">Micardi&#39;s Blog.</a>
+            </div>
+            <div class="post-title">
+                <a href="#" class="post-name">解决Xor问题的利器——线性基</a>
+            </div>
+    </div>
+    
+    <a class="home-link" href="/">Micardi's Blog.</a>
+</header>
+    <div class="wrapper">
+        <div class="site-intro" style="
+
+
+
+
+
+
+
+height:50vh;
+">
+    
+    <!-- 主页  -->
+    
+    
+    <!-- 404页  -->
+            
+    <div class="site-intro-placeholder"></div>
+    <div class="site-intro-img" style="background-image: url(/intro/post-bg.jpg)"></div>
+    <div class="site-intro-meta">
+        <!-- 标题  -->
+        <h1 class="intro-title">
+            <!-- 主页  -->
+            
+            解决Xor问题的利器——线性基
+            <!-- 404 -->
+            
+        </h1>
+        <!-- 副标题 -->
+        <p class="intro-subtitle">
+            <!-- 主页副标题  -->
+            
+            
+            <!-- 404 -->
+            
+        </p>
+        <!-- 文章页meta -->
+        
+            <div class="post-intros">
+                <!-- 文章页标签  -->
+                
+                    <div class="post-intro-tags">
+    
+        <a class="post-tag" href="javascript:void(0);" data-tags="OI">OI</a>
+    
+        <a class="post-tag" href="javascript:void(0);" data-tags="位运算">位运算</a>
+    
+        <a class="post-tag" href="javascript:void(0);" data-tags="线性基">线性基</a>
+    
+</div>
+                
+                
+                    <div class="post-intro-read">
+                        <span>字数统计: <span class="post-count word-count">1.2k</span>阅读时长: <span class="post-count reading-time">4 min</span></span>
+                    </div>
+                
+                <div class="post-intro-meta">
+                    <span class="post-intro-calander iconfont-archer">&#xe676;</span>
+                    <span class="post-intro-time">2019/03/29</span>
+                    
+                    <span id="busuanzi_container_page_pv" class="busuanzi-pv">
+                        <span class="iconfont-archer">&#xe602;</span>
+                        <span id="busuanzi_value_page_pv"></span>
+                    </span>
+                    
+                    <span class="shareWrapper">
+                        <span class="iconfont-archer shareIcon">&#xe71d;</span>
+                        <span class="shareText">Share</span>
+                        <ul class="shareList">
+                            <li class="iconfont-archer share-qr" data-type="qr">&#xe75b;
+                                <div class="share-qrcode"></div>
+                            </li>
+                            <li class="iconfont-archer" data-type="weibo">&#xe619;</li>
+                            <li class="iconfont-archer" data-type="qzone">&#xe62e;</li>
+                            <li class="iconfont-archer" data-type="twitter">&#xe634;</li>
+                            <li class="iconfont-archer" data-type="facebook">&#xe67a;</li>
+                        </ul>
+                    </span>
+                </div>
+            </div>
+        
+    </div>
+</div>
+        <script>
+ 
+  // get user agent
+  var browser = {
+    versions: function () {
+      var u = window.navigator.userAgent;
+      return {
+        userAgent: u,
+        trident: u.indexOf('Trident') > -1, //IE内核
+        presto: u.indexOf('Presto') > -1, //opera内核
+        webKit: u.indexOf('AppleWebKit') > -1, //苹果、谷歌内核
+        gecko: u.indexOf('Gecko') > -1 && u.indexOf('KHTML') == -1, //火狐内核
+        mobile: !!u.match(/AppleWebKit.*Mobile.*/), //是否为移动终端
+        ios: !!u.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/), //ios终端
+        android: u.indexOf('Android') > -1 || u.indexOf('Linux') > -1, //android终端或者uc浏览器
+        iPhone: u.indexOf('iPhone') > -1 || u.indexOf('Mac') > -1, //是否为iPhone或者安卓QQ浏览器
+        iPad: u.indexOf('iPad') > -1, //是否为iPad
+        webApp: u.indexOf('Safari') == -1, //是否为web应用程序，没有头部与底部
+        weixin: u.indexOf('MicroMessenger') == -1, //是否为微信浏览器
+        uc: u.indexOf('UCBrowser') > -1 //是否为android下的UC浏览器
+      };
+    }()
+  }
+  console.log("userAgent:" + browser.versions.userAgent);
+
+  // callback
+  function fontLoaded() {
+    console.log('font loaded');
+    if (document.getElementsByClassName('site-intro-meta')) {
+      document.getElementsByClassName('intro-title')[0].classList.add('intro-fade-in');
+      document.getElementsByClassName('intro-subtitle')[0].classList.add('intro-fade-in');
+      var postIntros = document.getElementsByClassName('post-intros')[0]
+      if (postIntros) {
+        postIntros.classList.add('post-fade-in');
+      }
+    }
+  }
+
+  // UC不支持跨域，所以直接显示
+  function asyncCb(){
+    if (browser.versions.uc) {
+      console.log("UCBrowser");
+      fontLoaded();
+    } else {
+      WebFont.load({
+        custom: {
+          families: ['Oswald-Regular']
+        },
+        loading: function () {  //所有字体开始加载
+          // console.log('loading');
+        },
+        active: function () {  //所有字体已渲染
+          fontLoaded();
+        },
+        inactive: function () { //字体预加载失败，无效字体或浏览器不支持加载
+          console.log('inactive: timeout');
+          fontLoaded();
+        },
+        timeout: 5000 // Set the timeout to two seconds
+      });
+    }
+  }
+
+  function asyncErr(){
+    console.warn('script load from CDN failed, will load local script')
+  }
+
+  // load webfont-loader async, and add callback function
+  function async(u, cb, err) {
+    var d = document, t = 'script',
+      o = d.createElement(t),
+      s = d.getElementsByTagName(t)[0];
+    o.src = u;
+    if (cb) { o.addEventListener('load', function (e) { cb(null, e); }, false); }
+    if (err) { o.addEventListener('error', function (e) { err(null, e); }, false); }
+    s.parentNode.insertBefore(o, s);
+  }
+
+  var asyncLoadWithFallBack = function(arr, success, reject) {
+      var currReject = function(){
+        reject()
+        arr.shift()
+        if(arr.length)
+          async(arr[0], success, currReject)
+        }
+
+      async(arr[0], success, currReject)
+  }
+
+  asyncLoadWithFallBack([
+    "https://cdn.jsdelivr.net/npm/webfontloader@1.6.28/webfontloader.min.js", 
+    "https://cdn.bootcss.com/webfont/1.6.28/webfontloader.js",
+    "/lib/webfontloader.min.js"
+  ], asyncCb, asyncErr)
+</script>        
+        <img class="loading" src="/assets/loading.svg" style="display: block; margin: 6rem auto 0 auto; width: 6rem; height: 6rem;" />
+        <div class="container container-unloaded">
+            <main class="main post-page">
+    <article class="article-entry">
+        <p>位运算是算法竞赛独特而有趣的一类知识，Xor（异或）则是相关题目中出现较为频繁的一种运算。</p>
+<p>Xor具有以下特点/性质：<br>交换律：a^b=b^a<br>结合律：a^(b^c)=(a^b)^c<br>自零性：a^a=0<br>自反性：若a^b=c,则c^b=a,c^a=b</p>
+<p>而在Xor一类题目中，我们常常会面对类似这样的问题：求出给定集合产生的所有异或值中最大/k大/最小/k小值。</p>
+<p>我们知道，枚举所有子集的异或值复杂度为指数级别，难以处理集合规模较大的问题——不过我们注意到，所有子集产生的异或值会有许多重复的，我们要简化问题的关键就在于如何去重。<br>我们就会有这样一个想法——能否构造出一个集合，使其既能保证与原集合异或值域相同，又能大大缩小集合规模呢？<br>于是——线性基，应运而生了。</p>
+<hr>
+<h3 id="什么是线性基？"><a href="#什么是线性基？" class="headerlink" title="什么是线性基？"></a>什么是线性基？</h3><p>“基”的概念来源于线性代数，线性空间中任意一个元素都可以唯一地表示成基向量的线性组合。</p>
+<p>而线性基是一种特殊的基。一个集合的线性基具有如下基本性质：</p>
+<ul>
+<li>其子集的异或值域与原集合的异或值域相同</li>
+<li>线性基是所有满足第一条性质的集合中最小的集合</li>
+<li>线性基无法通过异或得到0</li>
+</ul>
+<hr>
+<h3 id="如何构造线性基？"><a href="#如何构造线性基？" class="headerlink" title="如何构造线性基？"></a>如何构造线性基？</h3><p>我们通常用数组p来表示线性基。其中p[i]表示：二进制最高位的1在第i位的数。<br><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">define</span> ll long long</span></span><br><span class="line"><span class="keyword">const</span> <span class="keyword">int</span> N=<span class="number">64</span>;</span><br><span class="line">ll p[N];</span><br><span class="line"><span class="function"><span class="keyword">inline</span> <span class="keyword">void</span> <span class="title">ins</span><span class="params">(ll x)</span><span class="comment">//向线性基中插入x</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">for</span>(<span class="keyword">int</span> j=<span class="number">63</span>;~j;--j)</span><br><span class="line">	&#123;</span><br><span class="line">        <span class="keyword">if</span>(x&gt;&gt;j&amp;<span class="number">1</span>)<span class="comment">//如果x第j位为1</span></span><br><span class="line">		&#123;</span><br><span class="line">        	<span class="keyword">if</span>(!p[j])&#123;p[j]=x;<span class="keyword">break</span>;&#125;<span class="comment">//p[j]尚未存在，那么直接令p[j]=x，不要忘记break</span></span><br><span class="line">            <span class="keyword">else</span> x^=p[j];<span class="comment">//否则就让x异或上当前的p[j]，继续</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>考虑这样构造为什么能维护三个基本性质。</p>
+<ul>
+<li>对于性质一：<br>上述方法构造出的线性基之所以能维护性质一，在于该线性基能表示出原集合中的每一个数。</li>
+</ul>
+<p>设原集合为x1、x2、x3……xn，现在x1已经被插入线性基，我们插入x2。</p>
+<ol>
+<li>如果x1与x2最高位的1不在同一位上，比如x1=4(100),x2=2(010),由上述构造方法知：x1不会对x2产生影响，x2被顺利插入。</li>
+<li>如果x1与x2最高位的1在同一位上，比如x1=4(100),x2=6(110),那么x2会与x1进行Xor运算。设y=x1^x2,由Xor的自反性知x2=x1^y,那么x2就可以用x1^y表示出来。<br>插入x3、x4……xn同理。因此我们可以用一组线性基表示出原集合中的所有数，进而可以得到原集合中的所有异或值。</li>
+</ol>
+<ul>
+<li>对于性质二：<br>这还是非常显然的。</li>
+</ul>
+<p>我们在构造线性基时，会不断进行Xor的操作，如果一个数x经过不断Xor后变为0，说明这个数可以由线性基中若干个数表示出来——因为由Xor自零性知，只有当(p[i]^p[j]^p[k]^…^p[w])==x时，x才会变成0。而当且仅当这种情况下x才不会被插入线性基——换句话说，如果一个数被插入了线性基，说明这个数无法用其他数经过Xor得到。<br>因此，线性基中的每一个数都无法删去或者合并，因为若被删去或者合并，这个数就没办法表示出来了。所以线性基是满足性质一的最小集合，进而保证了性质二成立。</p>
+<ul>
+<li>对于性质三：<br>前两条性质一旦保证，第三条性质也呼之欲出了。</li>
+</ul>
+<p>假设线性基可以通过相互Xor得到0，那么一定有(p[i]^p[j]^…^p[k])==(p[a]^p[b]^…^p[c]),由Xor自反性知，有(p[i]^p[j]^p[k]^p[a]^…^p[b])==p[c]，即p[c]可以用其它的基表示出来，与性质二冲突，假设不成立。</p>
+<p>了解了基本性质与构造方法后，我们就可以用线性基去解决一些题目了。至于线性基的一些特殊性质，我们就结合题目来理解吧：</p>
+<hr>
+<h3 id="例题"><a href="#例题" class="headerlink" title="例题"></a>例题</h3><ul>
+<li><a href="https://loj.ac/problem/113" target="_blank" rel="noopener">最大异或和</a></li>
+</ul>
+<p>线性基模板题。</p>
+<p>一个很显然的贪心：我们从高位到低位遍历线性基，若当前ans与当前p[i]进行Xor操作后变大了，我们就令ans=(ans^p[i])。<br>贪心正确性？<br>对于线性基中每一个p[i]以及任意j<i，一定有p[j]第i位为0——结合构造方法，这个性质不难想到。那么我们每次都尽量保证当前最高位更大，之后在低位一定不会对高位有影响。 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;bits/stdc++.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> ll long long</span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> <span class="built_in">std</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> <span class="keyword">int</span> N=<span class="number">55</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">int</span> n;</span><br><span class="line">ll a[N],p[<span class="number">107</span>];</span><br><span class="line"></span><br><span class="line"><span class="function">ll <span class="title">read</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    ll f=<span class="number">1</span>,a=<span class="number">0</span>;<span class="keyword">char</span> ch=getchar();</span><br><span class="line">    <span class="keyword">while</span>(ch&lt;<span class="string">'0'</span>||ch&gt;<span class="string">'9'</span>)&#123;<span class="keyword">if</span>(ch==<span class="string">'-'</span>)f=<span class="number">-1</span>;ch=getchar();&#125;</span><br><span class="line">    <span class="keyword">while</span>(ch&gt;=<span class="string">'0'</span>&amp;&amp;ch&lt;=<span class="string">'9'</span>)&#123;a=(a&lt;&lt;<span class="number">3</span>)+(a&lt;&lt;<span class="number">1</span>)+ch-<span class="string">'0'</span>;ch=getchar();&#125;</span><br><span class="line">    <span class="keyword">return</span> a*f;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">inline</span> <span class="keyword">void</span> <span class="title">Xian_Xing_Ji</span><span class="params">(ll x)</span> </span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">register</span> ll i=<span class="number">60</span>;i&gt;=<span class="number">0</span>;--i)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">if</span>(!(x&gt;&gt;i))<span class="keyword">continue</span>;</span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">if</span>(!p[i])&#123;</span><br><span class="line">                p[i]=x;</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">else</span> x^=p[i];</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    n=read();</span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">register</span> <span class="keyword">int</span> i=<span class="number">1</span>;i&lt;=n;++i)</span><br><span class="line">    Xian_Xing_Ji(a[i]=read());</span><br><span class="line">    </span><br><span class="line">    ll ans=<span class="number">0</span>;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">register</span> <span class="keyword">int</span> i=<span class="number">60</span>;i&gt;=<span class="number">0</span>;--i)</span><br><span class="line">    <span class="keyword">if</span>((ans^p[i])&gt;ans)ans^=p[i];</span><br><span class="line">    <span class="built_in">cout</span>&lt;&lt;ans;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></i，一定有p[j]第i位为0——结合构造方法，这个性质不难想到。那么我们每次都尽量保证当前最高位更大，之后在低位一定不会对高位有影响。></p>
+<ul>
+<li><a href="https://loj.ac/problem/114" target="_blank" rel="noopener">k大异或和</a></li>
+</ul>
+<p>线性基模板题。不过显然没有上题那么模板化——而且题目叫“k小异或和”似乎妥当一些。</p>
+<p>首先我们需要介绍一个特殊性质：线性基中的元素相互Xor，线性基Xor值域不变——比如，设线性基中有元素x,y,现在令x=x^y,那么由Xor的自反性知，原来的x依旧可以用现在的x异或y得到，所以原来线性基的异或集合是不会变的。<br>知道这个性质有什么用？本题需要利用这个性质对常规线性基进行改造。</p>
+<p>我们令p[i]的意义稍稍改变一下：p[i]表示原Xor集合中，最高位的1在第i位的所有数中最小的一个。例如：若原Xor集合中最高位的1在第3位的有5(101),6(110),那么p[2]就应该等于5。<br>接下来，我们要用一个数组a记录非空空的p——比如，p[0]=1,p[1]=0,p[2]=5,我们就要去掉p[1]——因为空的线性基显然不会对答案有贡献，这样就变成了a[0]=1,a[1]=5。<br>然后，我们对k进行二进制拆分：若k二进制第i位为1，那么就让当前ans^p[i]，最后的ans就是所求了。</p>
+<p>为什么这么做？我们借助一个例子理解一下：<br>我们可以用10进制联想：第15小的正整数是谁？十位上第1小的(10)加上各位上第五小的(5)——二进制也同理。若k=5(101)，其实就是要求(非空)第2位上第一小的数Xor上第0位上第一小的数，就是a[2]^a[0]了(想一想，为什么是非空)。</p>
+<p>这道题还有两个需要注意的地方：</p>
+<ol>
+<li><p>怎么求改造后的p[i]？<br>从高位到低位遍历原始线性基，对于每一个p[i]，若其第j位(j&lt;i)为1，就让p[i]=p[i]^p[j]。<br>如何保证这样得到的p[i]是第i位中最小的？<br>这里偷个懒……就不给详细解释了，大家感性理解：这样构造的话我们是让p[i]中比第i位低的1都尽量变成0——我们如何找十进制百位最小的数？显然让是比百位低的位上都为0。二进制也同理，我们要找当前Xor集合中第i位为1的最小数，自然也是尽量让比第i位低的位上都为0啊。<br>同时，由前文所述特殊性质知，这样改造出的线性基与原集合Xor集合仍然相同。</p>
+</li>
+<li><p>由于线性基无法通过Xor得到0，所以若原集合可以通过Xor得到0，那么我们所求原集合中第k小实际上是线性基中的第k-1小。<br>怎么判断原集合能否通过Xor得到0？若构造出线性基后发现线性基中的数比原集合中的数少，说明原集合可以通过相互Xor得到0——为什么？若原集合中的数相互Xor能得到0，一定有(x1^x2^…^xn)==0,即(x1^…^x2)==xn,那么由基本性质二可知，xn无法被插入线性基，线性基中数的个数就会比原集合中的数少。</p>
+</li>
+</ol>
+<p>然后我们就可以水过这道题了：<br><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;bits/stdc++.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> ll long long </span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> <span class="built_in">std</span>;</span><br><span class="line">ll p[<span class="number">64</span>],a[<span class="number">64</span>],x,k;</span><br><span class="line"><span class="keyword">int</span> n,m,cnt=<span class="number">0</span>;</span><br><span class="line"><span class="function"><span class="keyword">inline</span> <span class="keyword">void</span> <span class="title">ins</span><span class="params">(ll x)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">for</span>(<span class="keyword">int</span> j=<span class="number">50</span>;~j;--j)</span><br><span class="line">	&#123;</span><br><span class="line">        <span class="keyword">if</span>(x&gt;&gt;j&amp;<span class="number">1</span>)</span><br><span class="line">		&#123;</span><br><span class="line">        	<span class="keyword">if</span>(!p[j])&#123;p[j]=x;<span class="keyword">break</span>;&#125;</span><br><span class="line">            <span class="keyword">else</span> x^=p[j];</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">   </span><br><span class="line">    <span class="built_in">scanf</span>(<span class="string">"%d"</span>,&amp;n);</span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">1</span>;i&lt;=n;++i)</span><br><span class="line">	&#123;</span><br><span class="line">        <span class="built_in">scanf</span>(<span class="string">"%lld"</span>,&amp;x);</span><br><span class="line">        ins(x);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">50</span>;~i;--i)</span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> j=i<span class="number">-1</span>;~j;--j)</span><br><span class="line">    <span class="keyword">if</span>(p[i]&gt;&gt;j&amp;<span class="number">1</span>)p[i]^=p[j];</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>;i&lt;=<span class="number">50</span>;++i)</span><br><span class="line">	<span class="keyword">if</span>(p[i])a[cnt++]=p[i];</span><br><span class="line">	</span><br><span class="line">    <span class="built_in">scanf</span>(<span class="string">"%d"</span>,&amp;m);</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">while</span>(m--)</span><br><span class="line">	&#123; 	</span><br><span class="line">        <span class="built_in">scanf</span>(<span class="string">"%lld"</span>,&amp;k);</span><br><span class="line">        <span class="keyword">if</span>(cnt!=n)--k;</span><br><span class="line">        <span class="keyword">if</span>(k&gt;=(<span class="number">1l</span>l&lt;&lt;cnt))<span class="built_in">puts</span>(<span class="string">"-1"</span>);</span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">		&#123;</span><br><span class="line">            ll ans=<span class="number">0</span>;</span><br><span class="line">            <span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>;i&lt;cnt;++i)</span><br><span class="line">                <span class="keyword">if</span>(k&gt;&gt;i&amp;<span class="number">1</span>)ans^=a[i];</span><br><span class="line">            <span class="built_in">printf</span>(<span class="string">"%lld\n"</span>,ans);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<ul>
+<li><a href="https://www.luogu.org/problemnew/show/P4301" target="_blank" rel="noopener">CQOI2013新Nim游戏</a></li>
+</ul>
+<p>很有意思的一道线性基题目。</p>
+<p>我们首先要知道传统Nim游戏如何判断胜负：设火柴堆数分别为x1、x2…xn，那么先手必胜当且仅当x1^x2^…^xn不为0，否则先手必败。具体证明属于博弈论相关，在此不再赘述。<br>这道题与传统Nim游戏不一样的地方在于，第一轮双方是可以随便拿整堆火柴的——那么若要先手必胜，先手方必须留下一个局面，使得后手无论怎么做都无法令剩下的所有石子异或为0。<br>集合内所有子集Xor值均不为0？一眼线性基噢！只要先手方留给后手方一个线性基，那不就是先手必胜了吗?</p>
+<p>做法就很显然了：对于每一堆火柴，我们判断它是否可以被插入线性基，若可以就插入，否则就把这一堆石子取走。<br>有一个需要注意的地方：题目还要求拿走的火柴数目的最小？我们可以贪心：将火柴堆数从大到小排列后进行上述操作。<br>为什么是从大到小？我们这么想：我们肯定要先让大的数都尽量插入线性基，这样等到不得不拿走火柴的时候，拿走的就都是小的了。自己举几个例子，相信并不难理解。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;bits/stdc++.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> ll long long</span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> <span class="built_in">std</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> <span class="keyword">int</span> N=<span class="number">107</span>;</span><br><span class="line"></span><br><span class="line">ll p[<span class="number">64</span>],a[N];</span><br><span class="line"><span class="keyword">int</span> k;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">inline</span> <span class="keyword">bool</span> <span class="title">ins</span><span class="params">(ll x)</span></span>&#123;</span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">register</span> <span class="keyword">int</span> i=<span class="number">63</span>;~i;--i)&#123;</span><br><span class="line">        <span class="keyword">if</span>(x&gt;&gt;i&amp;<span class="number">1</span>)&#123;</span><br><span class="line">            <span class="keyword">if</span>(!p[i])&#123;</span><br><span class="line">                p[i]=x;</span><br><span class="line">                <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">            &#125; </span><br><span class="line">            <span class="keyword">else</span> x^=p[i];</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">ll ans;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="built_in">scanf</span>(<span class="string">"%d"</span>,&amp;k);</span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">register</span> <span class="keyword">int</span> i=<span class="number">1</span>;i&lt;=k;++i)</span><br><span class="line">    <span class="built_in">scanf</span>(<span class="string">"%lld"</span>,&amp;a[i]);</span><br><span class="line">    </span><br><span class="line">    sort(a+<span class="number">1</span>,a+k+<span class="number">1</span>);</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">register</span> <span class="keyword">int</span> i=k;i;--i)</span><br><span class="line">    <span class="keyword">if</span>(!ins(a[i]))ans+=a[i];</span><br><span class="line">    </span><br><span class="line">    <span class="built_in">cout</span>&lt;&lt;(ll)ans;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>-<a href="https://www.luogu.org/problemnew/show/P4869" target="_blank" rel="noopener">albus就是要第一个出场</a></p>
+<p>又是一道需要用到一个特殊性质的题。<br>我们设线性基非空长度为k(如p[0]=1,p[2]=4,p[5]=32,则k=3)，则线性基所能表示的Xor集合里共有2的k次方个不相同的数——这个很显然，每一个基都有选或不选两种可能。而设原集合长度为n，则每一种Xor值都出现了2的n-k次方次。<br>这是为什么？我们可以这么考虑：因为原集合的线性基可以表示出所有Xor值，所以除了k个基以外，其它的n-k个数对Xor值并没有贡献，因此我们可以把它们都看成0；与此同时，k个基每产生一个异或值，都可以与这n-k个0继续Xor——从n-k个0中选择若干个零有几种方案呢？2的n-k次方种。</p>
+<p>接下来我们要求给定的Q是第几大——我们依旧对线性基进行一个小小改造，我们用一个数组b存储非空p[i]的i(比如p[0]=1,p[1]=0,p[2]=4,则b[0]=0,b[1]=2),如果Q二进制中第b[i]位为1，则对答案贡献为2的i次方——因为说明到第i位时，是有这么多Xor值是比Q小的。<br>每种Xor值都出现了2的(n-k)次方次，快速幂在最后处理即可。<br>最后答案要+1，因为之前我们求的是有多少Xor值比Q小，加上1才是我们想要的排名。<br><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;bits/stdc++.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> ll long long</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> mod 10086</span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> <span class="built_in">std</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> <span class="keyword">int</span> N=<span class="number">2e5</span>+<span class="number">7</span>;</span><br><span class="line"></span><br><span class="line">ll p[<span class="number">63</span>],a[N],b[N];</span><br><span class="line"><span class="keyword">int</span> n,k,tot,sum;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">inline</span> <span class="keyword">void</span> <span class="title">ins</span><span class="params">(ll x)</span></span>&#123;</span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">register</span> <span class="keyword">int</span> i=<span class="number">63</span>;~i;--i)&#123;</span><br><span class="line">        <span class="keyword">if</span>(x&gt;&gt;i&amp;<span class="number">1</span>)&#123;</span><br><span class="line">            <span class="keyword">if</span>(!p[i])&#123;</span><br><span class="line">                p[i]=x;</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">else</span> x^=p[i];</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function">ll <span class="title">qpow</span><span class="params">(ll a,ll b)</span></span>&#123;</span><br><span class="line">    ll ans=<span class="number">1</span>;</span><br><span class="line">    <span class="keyword">while</span>(b)&#123;</span><br><span class="line">        <span class="keyword">if</span>(b&amp;<span class="number">1</span>)ans=(a*ans)%mod;</span><br><span class="line">        b&gt;&gt;=<span class="number">1</span>;</span><br><span class="line">        a=(a*a)%mod;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> ans;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span>&#123;</span><br><span class="line">    <span class="built_in">scanf</span>(<span class="string">"%d"</span>,&amp;n);</span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">register</span> <span class="keyword">int</span> i=<span class="number">1</span>;i&lt;=n;++i)<span class="built_in">scanf</span>(<span class="string">"%lld"</span>,&amp;a[i]),ins(a[i]);</span><br><span class="line">    <span class="built_in">scanf</span>(<span class="string">"%d"</span>,&amp;k);</span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">register</span> <span class="keyword">int</span> i=<span class="number">0</span>;i&lt;<span class="number">64</span>;++i)</span><br><span class="line">    <span class="keyword">if</span>(p[i])b[tot++]=i;</span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">register</span> <span class="keyword">int</span> i=<span class="number">0</span>;i&lt;tot;++i)</span><br><span class="line">    <span class="keyword">if</span>(k&gt;&gt;b[i]&amp;<span class="number">1</span>)sum+=<span class="number">1l</span>l&lt;&lt;i;</span><br><span class="line">        </span><br><span class="line">    <span class="built_in">cout</span>&lt;&lt;(<span class="number">1l</span>l*sum*qpow(<span class="number">2</span>,n-tot)+<span class="number">1</span>)%mod;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+
+    </article>
+    <!-- license  -->
+    
+        <div class="license-wrapper">
+            <p>原文作者：<a href="https://micardi.github.io">Micardi</a>
+            </p><p>原文链接：<a href="https://micardi.github.io/2019/03/29/线性基随笔/">https://micardi.github.io/2019/03/29/线性基随笔/</a>
+            </p><p>发表日期：<a href="https://micardi.github.io/2019/03/29/线性基随笔/">March 29th 2019, 7:35:09 pm</a>
+            </p><p>更新日期：<a href="https://micardi.github.io/2019/03/29/线性基随笔/">March 30th 2019, 11:37:14 pm</a>
+            </p><p>版权声明：本文采用<a rel="license" href="http://creativecommons.org/licenses/by-nc/4.0/">知识共享署名-非商业性使用 4.0 国际许可协议</a>进行许可</p>
+        </div>
+    
+    <!-- paginator  -->
+    <ul class="post-paginator">
+        <li class="next">
+            
+                <div class="nextSlogan">Next Post</div>
+                <a href="/2019/03/29/一句话题解/" title="一句话题解">
+                    <div class="nextTitle">一句话题解</div>
+                </a>
+            
+        </li>
+        <li class="previous">
+            
+        </li>
+    </ul>
+    <!-- 评论插件 -->
+    <!-- 来必力City版安装代码 -->
+
+<!-- City版安装代码已完成 -->
+    
+    
+    <!-- partial('_partial/comment/changyan') -->
+    <!--PC版-->
+
+
+    
+    
+
+    <!-- 评论 -->
+</main>
+            <!-- profile -->
+            
+        </div>
+        <footer class="footer footer-unloaded">
+    <!-- social  -->
+    
+    <div class="social">
+        
+    
+        
+            
+                <a href="mailto:1716610125@qq.com" class="iconfont-archer email" title="email"></a>
+            
+        
+    
+        
+            
+                <a href="//github.com/Micardi" class="iconfont-archer github" target="_blank" title="github"></a>
+            
+        
+    
+        
+            
+                <span class="iconfont-archer wechat" title="wechat">
+                  
+                  <img class="profile-qr" src="/assets/example_qr.png">
+                </span>
+            
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+
+    </div>
+    
+    <!-- powered by Hexo  -->
+    <div class="copyright">
+        <span id="hexo-power">Powered by <a href="https://hexo.io/" target="_blank">Hexo</a></span><span class="iconfont-archer power">&#xe635;</span><span id="theme-info">theme <a href="https://github.com/fi3ework/hexo-theme-archer" target="_blank">Archer</a></span>
+    </div>
+    <!-- 不蒜子  -->
+    
+    <div class="busuanzi-container">
+    
+     
+    <span id="busuanzi_container_site_pv">PV: <span id="busuanzi_value_site_pv"></span> :)</span>
+    
+    </div>
+    
+</footer>
+    </div>
+    <!-- toc -->
+    
+    <div class="toc-wrapper" style=
+    
+
+
+
+
+
+
+
+top:50vh;
+
+    >
+        <div class="toc-catalog">
+            <span class="iconfont-archer catalog-icon">&#xe613;</span><span>CATALOG</span>
+        </div>
+        <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#什么是线性基？"><span class="toc-number">1.</span> <span class="toc-text">什么是线性基？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#如何构造线性基？"><span class="toc-number">2.</span> <span class="toc-text">如何构造线性基？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#例题"><span class="toc-number">3.</span> <span class="toc-text">例题</span></a></li></ol>
+    </div>
+    
+    <div class="back-top iconfont-archer">&#xe639;</div>
+    <div class="sidebar sidebar-hide">
+    <ul class="sidebar-tabs sidebar-tabs-active-0">
+        <li class="sidebar-tab-archives"><span class="iconfont-archer">&#xe67d;</span><span class="tab-name">Archive</span></li>
+        <li class="sidebar-tab-tags"><span class="iconfont-archer">&#xe61b;</span><span class="tab-name">Tag</span></li>
+        <li class="sidebar-tab-categories"><span class="iconfont-archer">&#xe666;</span><span class="tab-name">Cate</span></li>
+    </ul>
+    <div class="sidebar-content sidebar-content-show-archive">
+          <div class="sidebar-panel-archives">
+    <!-- 在ejs中将archive按照时间排序 -->
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <div class="total-and-search">
+        <div class="total-archive">
+        Total : 2
+        </div>
+        <!-- search  -->
+        
+    </div>
+    
+    <div class="post-archive">
+    
+    
+    
+    
+    <div class="archive-year"> Invalid date </div>
+    <ul class="year-list">
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">Invalid date</span><a class="archive-post-title" href="/2019/03/29/线性基随笔/">解决Xor问题的利器——线性基</a>
+        </li>
+    
+    
+    
+    
+    
+        </ul>
+    
+    <div class="archive-year"> Invalid date </div>
+    <ul class="year-list">
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">Invalid date</span><a class="archive-post-title" href="/2019/03/29/一句话题解/">一句话题解</a>
+        </li>
+    
+    </ul></div>
+  </div>
+        <div class="sidebar-panel-tags">
+    <div class="sidebar-tags-name">
+    
+        <span class="sidebar-tag-name" data-tags="OI"><span class="iconfont-archer">&#xe606;</span>OI</span>
+    
+        <span class="sidebar-tag-name" data-tags="位运算"><span class="iconfont-archer">&#xe606;</span>位运算</span>
+    
+        <span class="sidebar-tag-name" data-tags="线性基"><span class="iconfont-archer">&#xe606;</span>线性基</span>
+    
+    </div>
+    <div class="iconfont-archer sidebar-tags-empty">&#xe678;</div>
+    <div class="tag-load-fail" style="display: none; color: #ccc; font-size: 0.6rem;">
+    缺失模块。<br>
+    1、请确保node版本大于6.2<br>
+    2、在博客根目录（注意不是archer根目录）执行以下命令：<br>
+    <span style="color: #f75357; font-size: 1rem; line-height: 2rem;">npm i hexo-generator-json-content --save</span><br>
+    3、在根目录_config.yml里添加配置：
+    <pre style="color: #787878; font-size: 0.6rem;">
+jsonContent:
+  meta: false
+  pages: false
+  posts:
+    title: true
+    date: true
+    path: true
+    text: false
+    raw: false
+    content: false
+    slug: false
+    updated: false
+    comments: false
+    link: false
+    permalink: false
+    excerpt: false
+    categories: true
+    tags: true</pre>
+    </div> 
+    <div class="sidebar-tags-list"></div>
+</div>
+        <div class="sidebar-panel-categories">
+    <div class="sidebar-categories-name">
+    
+        <span class="sidebar-category-name" data-categories="题解"><span class="iconfont-archer">&#xe60a;</span>题解</span>
+    
+        <span class="sidebar-category-name" data-categories="学习笔记"><span class="iconfont-archer">&#xe60a;</span>学习笔记</span>
+    
+    </div>
+    <div class="iconfont-archer sidebar-categories-empty">&#xe678;</div>
+    <div class="sidebar-categories-list"></div>
+</div>
+    </div>
+</div> 
+    <script>
+    var siteMeta = {
+        root: "/",
+        author: "Micardi"
+    }
+</script>
+    <!-- CDN failover -->
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script>
+    <script type="text/javascript">
+        if (typeof window.$ === 'undefined')
+        {
+            console.warn('jquery load from jsdelivr failed, will load local script')
+            document.write('<script src="/lib/jquery.min.js">\x3C/script>')
+        }
+    </script>
+    <script src="/scripts/main.js"></script>
+    <!-- algolia -->
+    
+    <!-- busuanzi  -->
+    
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    
+    <!-- CNZZ  -->
+    
+    </div>
+    <!-- async load share.js -->
+    
+        <script src="/scripts/share.js" async></script>    
+     
+    </body>
+</html>
+
+
